@@ -1,0 +1,4 @@
+Iconset: Phosphor Duotone Vol.3 (https://www.iconfinder.com/iconsets/phosphor-bold-vol-3-1)
+Author: Phosphor Icons (https://www.iconfinder.com/phosphor-icons)
+License: MIT License (http://opensource.org/licenses/MIT)
+Download date: 2023-07-08
