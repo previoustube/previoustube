@@ -7,6 +7,8 @@
 #include <stdint.h>
 
 #define NUM_LCDS 6
+#define LCD_WIDTH 80
+#define LCD_HEIGHT 162
 
 void lcds_init();
 void lcd_select(size_t index);

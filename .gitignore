@@ -23,5 +23,8 @@ cmake-build-*/
 build/
 out/
 
+# ESP Component Library Components
+managed_components/
+
 # secrets
 main/spiffs_assets/wifi.txt

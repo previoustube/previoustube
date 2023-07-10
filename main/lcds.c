@@ -182,7 +182,8 @@ void spi_write_bytes(const uint8_t *data, size_t length) {
         .tx_buffer = data,
     };
 
-    ESP_ERROR_CHECK(spi_device_polling_transmit(spi_device_handle, &transaction));
+    ESP_ERROR_CHECK(
+        spi_device_polling_transmit(spi_device_handle, &transaction));
   } else {
     const uint8_t *remaining_data = data;
     size_t remaining_length = length;
@@ -198,7 +199,8 @@ void spi_write_bytes(const uint8_t *data, size_t length) {
           .tx_buffer = remaining_data,
       };
 
-      ESP_ERROR_CHECK(spi_device_polling_transmit(spi_device_handle, &transaction));
+      ESP_ERROR_CHECK(
+          spi_device_polling_transmit(spi_device_handle, &transaction));
 
       remaining_length -= this_send_length;
       remaining_data += this_send_length;
@@ -222,7 +224,8 @@ void write_data_bytes(const uint8_t *data, size_t length) {
 }
 
 void init_red_tab() {
-  // Init sequence adapted from https://github.com/boochow/MicroPython-ST7735/blob/master/ST7735.py
+  // Init sequence adapted from
+  // https://github.com/boochow/MicroPython-ST7735/blob/master/ST7735.py
 
   write_command_byte(CMD_SWRESET); // reset
   ets_delay_us(150);
@@ -339,7 +342,7 @@ void lcd_fill(uint16_t color) {
 
 void lcd_copy_rect(int x, int y, int width, int height, const uint16_t *pixels,
                    size_t pixels_size_bytes) {
-  assert(pixels_size_bytes < sizeof(framebuffer));
+  assert(pixels_size_bytes <= sizeof(framebuffer));
   memcpy(framebuffer, pixels, pixels_size_bytes);
   lcd_blit_rect(x, y, width, height, framebuffer, pixels_size_bytes);
 }
@@ -378,5 +381,6 @@ void lcd_blit_rect(int x, int y, int width, int height, const uint16_t *pixels,
 }
 
 uint16_t color_to_rgb565(uint8_t red, uint8_t green, uint8_t blue) {
-  return __builtin_bswap16(((red & 0xF8) << 8) | ((green & 0xFC) << 3) | (blue >> 3));
+  return __builtin_bswap16(((red & 0xF8) << 8) | ((green & 0xFC) << 3) |
+                           (blue >> 3));
 }

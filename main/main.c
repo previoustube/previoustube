@@ -4,20 +4,15 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_spiffs.h"
-#include "esp_timer.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#include "gui.h"
 #include "lcds.h"
 #include "leds.h"
 #include "nvs_flash.h"
-#include "png.h"
 #include "touchpads.h"
 #include "wifi.h"
 #include <esp_psram.h>
 #include <rom/ets_sys.h>
 #include <sys/stat.h>
-#include <sys/time.h>
-#include <unistd.h>
 
 #define SPIFFS_MOUNTPOINT_NO_SLASH "/spiffs"
 #define SPIFFS_MOUNTPOINT SPIFFS_MOUNTPOINT_NO_SLASH "/"
@@ -76,124 +71,31 @@ void leds_off() {
 
 void activate_scene1() {
   leds_state state = {0};
-  leds_set_rgb(&state, 0, 255, 0, 0);
-  leds_set_rgb(&state, 1, 0, 255, 0);
-  leds_set_rgb(&state, 2, 0, 0, 255);
-  leds_set_rgb(&state, 3, 255, 0, 128);
-  leds_set_rgb(&state, 4, 128, 255, 0);
-  leds_set_rgb(&state, 5, 0, 255, 128);
+  for(int i = 0; i < NUM_LCDS; i++) {
+    leds_set_rgb(&state, i, 239, 192, 112);
+  }
   leds_update(&state);
 
-  lcd_select(0);
+  for (int i = 0; i < NUM_LCDS; i++) {
+    lv_disp_set_default(gui_get_display(i));
+    lv_obj_t *img = lv_img_create(lv_scr_act());
+    lv_img_set_src(img, "S:/spiffs/split_flap.png");
+    lv_obj_set_pos(img, 0, 0);
+    lv_obj_set_size(img, LCD_WIDTH, LCD_HEIGHT);
 
-  png_open(SPIFFS_MOUNTPOINT "0.png");
-  png_draw(-1);
-  png_close();
+    lv_obj_t *label = lv_label_create(lv_scr_act());
 
-  lcd_select(1);
+    char text[2];
+    snprintf(text, 2, "%d", i);
+    lv_label_set_text(label, text);
+    lv_obj_set_style_text_color(lv_scr_act(), lv_color_hex(0xFCF9D9),
+                                LV_PART_MAIN);
+    lv_obj_set_style_text_font(lv_scr_act(), &lv_font_montserrat_48,
+                               LV_PART_MAIN);
 
-  png_open(SPIFFS_MOUNTPOINT "1.png");
-  png_draw(-1);
-  png_close();
-
-  lcd_select(2);
-
-  png_open(SPIFFS_MOUNTPOINT "2.png");
-  png_draw(-1);
-  png_close();
-
-  lcd_select(3);
-
-  png_open(SPIFFS_MOUNTPOINT "3.png");
-  png_draw(-1);
-  png_close();
-
-  lcd_select(4);
-
-  png_open(SPIFFS_MOUNTPOINT "4.png");
-  png_draw(-1);
-  png_close();
-
-  lcd_select(5);
-  png_open(SPIFFS_MOUNTPOINT "5.png");
-  png_draw(-1);
-  png_close();
-}
-
-#define NUM_FRAMES 10
-
-static uint16_t *frames[NUM_FRAMES * NUM_LCDS];
-const size_t frame_size = 80 * 160 * 2;
-
-void preload_images() {
-  leds_state progress_leds = {0};
-  leds_update(&progress_leds);
-
-  for (int j = 0; j < NUM_FRAMES; j++) {
-    int lit_led = (j + 1) * NUM_LEDS / NUM_FRAMES;
-    if (lit_led < NUM_LEDS) {
-      leds_set_rgb(&progress_leds, lit_led, 255, 255, 255);
-      leds_update(&progress_leds);
-    }
-
-    for (int i = 0; i < NUM_LCDS; i++) {
-      char filename[42];
-      //      snprintf(filename, 42, SPIFFS_MOUNTPOINT
-      //      "/frame_%d_screen_%d.png", j, i);
-      snprintf(filename, 42, SPIFFS_MOUNTPOINT "%d.png",
-               ((j * NUM_LCDS + i) % 10));
-      filename[41] = '\0';
-      int frame_index = j * NUM_LCDS + i;
-
-      frames[frame_index] = heap_caps_malloc(frame_size, MALLOC_CAP_SPIRAM);
-      assert(frames[frame_index]);
-      png_decode(filename, frames[frame_index], frame_size);
-    }
+    lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
   }
 
-  leds_off();
-}
-
-#define LCD_BENCHMARK 0
-
-void activate_scene2() {
-#if LCD_BENCHMARK
-  esp_log_level_set("gpio", ESP_LOG_NONE);
-#endif
-
-  leds_state state = {.pixel_grb = {0x22, 0x00, 0x00, 0x55, 0x00, 0x00, 0x99,
-                                    0x00, 0x00, 0x77, 0x00, 0x00, 0xFF, 0x00,
-                                    0x00, 0x44, 0x00, 0x00}};
-  leds_update(&state);
-
-#if LCD_BENCHMARK
-  struct timeval tv_now;
-  gettimeofday(&tv_now, NULL);
-  int64_t start_time_us =
-      (int64_t)tv_now.tv_sec * 1000000L + (int64_t)tv_now.tv_usec;
-#endif
-
-  int64_t iterations = 0;
-
-  while (iterations < 100) {
-    for (int j = 0; j < NUM_FRAMES; j++) {
-      for (int i = 0; i < NUM_LCDS; i++) {
-        lcd_select(i);
-        lcd_copy_rect(0, 0, 80, 160, frames[j * NUM_LCDS + i], frame_size);
-      }
-      iterations++;
-    }
-  }
-
-#if LCD_BENCHMARK
-  gettimeofday(&tv_now, NULL);
-  int64_t end_time_us =
-      (int64_t)tv_now.tv_sec * 1000000L + (int64_t)tv_now.tv_usec;
-
-  int64_t average_frame_us = (end_time_us - start_time_us) / iterations;
-
-  ESP_LOGI(TAG, "Benchmark complete. Time per frame: %lld", average_frame_us);
-#endif
 }
 
 void button_tapped(touchpad_button_t button) {
@@ -206,7 +108,6 @@ void button_tapped(touchpad_button_t button) {
     activate_scene1();
     break;
   case TOUCHPAD_RIGHT_BUTTON:
-    activate_scene2();
     break;
   }
 }
@@ -245,12 +146,9 @@ void app_main() {
   leds_off();
   lcds_init();
   wifi_init();
-
-  preload_images();
+  gui_init();
 
   touchpads_init(button_tapped, test_button_touched);
-
-  activate_scene1();
 
   struct stat st;
   if (stat(SPIFFS_MOUNTPOINT "wifi.txt", &st) == 0) {
@@ -259,4 +157,6 @@ void app_main() {
     // usability affordance if someone doesn't follow directions
     wifi_read_credentials_and_connect(SPIFFS_MOUNTPOINT "wifi.sample.txt");
   }
+
+  activate_scene1();
 }
