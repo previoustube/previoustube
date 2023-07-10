@@ -9,14 +9,20 @@
 #include "freertos/task.h"
 #include "lcds.h"
 #include "leds.h"
+#include "nvs_flash.h"
 #include "png.h"
 #include "touchpads.h"
+#include "wifi.h"
 #include <esp_psram.h>
 #include <rom/ets_sys.h>
+#include <sys/stat.h>
 #include <sys/time.h>
+#include <unistd.h>
+
+#define SPIFFS_MOUNTPOINT_NO_SLASH "/spiffs"
+#define SPIFFS_MOUNTPOINT SPIFFS_MOUNTPOINT_NO_SLASH "/"
 
 static const char *TAG = "previoustube";
-
 
 leds_state test_leds_state = {0};
 
@@ -80,36 +86,36 @@ void activate_scene1() {
 
   lcd_select(0);
 
-  png_open("/spiffs/0.png");
+  png_open(SPIFFS_MOUNTPOINT "0.png");
   png_draw(-1);
   png_close();
 
   lcd_select(1);
 
-  png_open("/spiffs/1.png");
+  png_open(SPIFFS_MOUNTPOINT "1.png");
   png_draw(-1);
   png_close();
 
   lcd_select(2);
 
-  png_open("/spiffs/2.png");
+  png_open(SPIFFS_MOUNTPOINT "2.png");
   png_draw(-1);
   png_close();
 
   lcd_select(3);
 
-  png_open("/spiffs/3.png");
+  png_open(SPIFFS_MOUNTPOINT "3.png");
   png_draw(-1);
   png_close();
 
   lcd_select(4);
 
-  png_open("/spiffs/4.png");
+  png_open(SPIFFS_MOUNTPOINT "4.png");
   png_draw(-1);
   png_close();
 
   lcd_select(5);
-  png_open("/spiffs/5.png");
+  png_open(SPIFFS_MOUNTPOINT "5.png");
   png_draw(-1);
   png_close();
 }
@@ -132,8 +138,10 @@ void preload_images() {
 
     for (int i = 0; i < NUM_LCDS; i++) {
       char filename[42];
-      //      snprintf(filename, 42, "/spiffs/frame_%d_screen_%d.png", j, i);
-      snprintf(filename, 42, "/spiffs/%d.png", ((j * NUM_LCDS + i) % 10));
+      //      snprintf(filename, 42, SPIFFS_MOUNTPOINT
+      //      "/frame_%d_screen_%d.png", j, i);
+      snprintf(filename, 42, SPIFFS_MOUNTPOINT "%d.png",
+               ((j * NUM_LCDS + i) % 10));
       filename[41] = '\0';
       int frame_index = j * NUM_LCDS + i;
 
@@ -203,27 +211,52 @@ void button_tapped(touchpad_button_t button) {
   }
 }
 
+void nvs_init() {
+  esp_err_t ret = nvs_flash_init();
+  if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
+      ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    ESP_ERROR_CHECK(nvs_flash_erase());
+    ret = nvs_flash_init();
+  }
+  ESP_ERROR_CHECK(ret);
+}
+
+void spiffs_init() {
+  // optimize pngs with 'oxipng.exe -o 4 -i 0 --strip all *.png'
+  esp_vfs_spiffs_conf_t config = {
+      .base_path = SPIFFS_MOUNTPOINT_NO_SLASH,
+      .partition_label = NULL,
+      .max_files = 5,
+      .format_if_mount_failed = false,
+  };
+  ESP_ERROR_CHECK(esp_vfs_spiffs_register(&config));
+}
+
 void app_main() {
   size_t psram_size = esp_psram_get_size();
   ESP_LOGI(TAG, "Starting... PSRAM size: %d bytes", psram_size);
 
   ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-  leds_init();
-  lcds_init();
+  spiffs_init();
+  nvs_init();
 
-  // full of PNGs, crushed with 'oxipng.exe -o 4 -i 0 --strip all *.png'
-  esp_vfs_spiffs_conf_t config = {
-      .base_path = "/spiffs",
-      .partition_label = NULL,
-      .max_files = 5,
-      .format_if_mount_failed = false,
-  };
-  esp_vfs_spiffs_register(&config);
+  leds_init();
+  leds_off();
+  lcds_init();
+  wifi_init();
 
   preload_images();
 
   touchpads_init(button_tapped, test_button_touched);
 
   activate_scene1();
+
+  struct stat st;
+  if (stat(SPIFFS_MOUNTPOINT "wifi.txt", &st) == 0) {
+    wifi_read_credentials_and_connect(SPIFFS_MOUNTPOINT "wifi.txt");
+  } else {
+    // usability affordance if someone doesn't follow directions
+    wifi_read_credentials_and_connect(SPIFFS_MOUNTPOINT "wifi.sample.txt");
+  }
 }

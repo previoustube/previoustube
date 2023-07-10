@@ -5,6 +5,7 @@ idf_component_register(
         "leds.h"
         "lcds.c"
         "png.cpp"
+        "wifi.cpp"
         "touchpads.c"
         INCLUDE_DIRS
         "."

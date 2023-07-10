@@ -22,3 +22,6 @@
 cmake-build-*/
 build/
 out/
+
+# secrets
+main/spiffs_assets/wifi.txt
