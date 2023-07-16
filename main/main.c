@@ -71,17 +71,17 @@ void leds_off() {
 
 void activate_scene1() {
   leds_state state = {0};
-  for(int i = 0; i < NUM_LCDS; i++) {
-    leds_set_rgb(&state, i, 239, 192, 112);
+  for (int i = 0; i < NUM_LCDS; i++) {
+    //    leds_set_rgb(&state, i, 239, 192, 112);
+    leds_set_rgb(&state, i, 228, 112, 37);
   }
   leds_update(&state);
 
   for (int i = 0; i < NUM_LCDS; i++) {
     lv_disp_set_default(gui_get_display(i));
-    lv_obj_t *img = lv_img_create(lv_scr_act());
-    lv_img_set_src(img, "S:/spiffs/split_flap.png");
-    lv_obj_set_pos(img, 0, 0);
-    lv_obj_set_size(img, LCD_WIDTH, LCD_HEIGHT);
+    lv_obj_t *background_image = lv_img_create(lv_scr_act());
+    lv_img_set_src(background_image, "S:/spiffs/split_flap.png");
+    lv_obj_set_pos(background_image, 0, 0);
 
     lv_obj_t *label = lv_label_create(lv_scr_act());
 
@@ -90,12 +90,13 @@ void activate_scene1() {
     lv_label_set_text(label, text);
     lv_obj_set_style_text_color(lv_scr_act(), lv_color_hex(0xFCF9D9),
                                 LV_PART_MAIN);
-    lv_obj_set_style_text_font(lv_scr_act(), &lv_font_montserrat_48,
-                               LV_PART_MAIN);
+    lv_obj_set_style_text_font(lv_scr_act(), &oswald_100, LV_PART_MAIN);
+    lv_obj_align(label, LV_ALIGN_CENTER, 0, -7);
 
-    lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_t *divider_image = lv_img_create(lv_scr_act());
+    lv_obj_set_pos(divider_image, 8, 75);
+    lv_img_set_src(divider_image, "S:/spiffs/split_flap_divider.png");
   }
-
 }
 
 void button_tapped(touchpad_button_t button) {

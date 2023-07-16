@@ -92,6 +92,8 @@ void gui_init() {
 
   ESP_ERROR_CHECK(esp_timer_create(&timer_args, &lv_timer_handle));
   ESP_ERROR_CHECK(esp_timer_start_periodic(lv_timer_handle, 5000));
+
+  lv_img_cache_set_size(8);
 }
 
 lv_disp_t *gui_get_display(size_t index) {
