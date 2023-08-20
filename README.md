@@ -1,5 +1,7 @@
 # PreviousTube
 
+![github actions](https://github.com/previoustube/previoustube/actions/workflows/build.yml/badge.svg)
+
 UNOFFICIAL reverse-engineered open source firmware for the Rotrics Nextube clock.
 
 https://github.com/previoustube/previoustube/assets/35295/3c729b8a-d233-4722-9762-ba130789bd4e
