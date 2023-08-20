@@ -2,6 +2,8 @@
 
 UNOFFICIAL reverse-engineered open source firmware for the Rotrics Nextube clock.
 
+https://github.com/previoustube/previoustube/assets/35295/3c729b8a-d233-4722-9762-ba130789bd4e
+
 ## Feature Status: Incomplete and Unusable!
 
 The *only* reason you would install this is to contribute *code* to the effort. Much later this may be helpful to
