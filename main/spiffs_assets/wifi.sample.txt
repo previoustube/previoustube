@@ -1,3 +1,0 @@
-# Rename this file to 'wifi.txt' and change to your network credentials
-ssid = "My Wifi Network"
-psk = "Secret Password"

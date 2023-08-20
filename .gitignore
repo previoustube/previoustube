@@ -1,24 +1,29 @@
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/**/usage.statistics.xml
-.idea/**/dictionaries
-.idea/**/shelf
 .idea/**/aws.xml
 .idea/**/contentModel.xml
-.idea/**/dataSources/
 .idea/**/dataSources.ids
 .idea/**/dataSources.local.xml
-.idea/**/sqlDataSources.xml
-.idea/**/dynamic.xml
-.idea/**/uiDesigner.xml
+.idea/**/dataSources/
 .idea/**/dbnavigator.xml
+.idea/**/dictionaries
+.idea/**/dynamic.xml
 .idea/**/gradle.xml
 .idea/**/libraries
-.idea/sonarlint/
+.idea/**/shelf
+.idea/**/sqlDataSources.xml
+.idea/**/tasks.xml
+.idea/**/uiDesigner.xml
+.idea/**/usage.statistics.xml
+.idea/**/workspace.xml
+.idea/.name
 .idea/httpRequests
+.idea/misc.xml
+.idea/sonarlint/
+
 *.iws
+
 .PVS-Studio
 *.PVS-Studio*
+
 cmake-build-*/
 build/
 out/
@@ -27,4 +32,8 @@ out/
 managed_components/
 
 # secrets
-main/spiffs_assets/wifi.txt
+main/spiffs/wifi.txt
+
+# using sdkconfig.defaults instead
+sdkconfig
+sdkconfig.old
