@@ -17,6 +17,7 @@
 #include "drivers/wifi.h"
 #include "gui.h"
 #include "led_manager.h"
+#include "rtc.h"
 #include "webserver.h"
 
 #define SPIFFS_MOUNTPOINT_NO_SLASH "/spiffs"
@@ -29,6 +30,7 @@ static const auto SNTP_SERVER = "pool.ntp.org";
 ESP_EVENT_DECLARE_BASE(DISPATCH_EVENTS);
 enum {
   DISPATCH_EVENT_TIME_CHANGED,
+  DISPATCH_EVENT_RTC_TIME_LOADED,
 };
 
 bool blinks_enabled = true;
@@ -134,6 +136,13 @@ void spiffs_init() {
 
 void ntp_changed_time(struct timeval *tv) {
   ESP_LOGI(TAG, "Time changed: %lld", tv->tv_sec);
+
+  rtc_persist();
+  clock::get().update();
+}
+
+void rtc_loaded_time(struct timeval *tv) {
+  ESP_LOGI(TAG, "Time loaded: %lld", tv->tv_sec);
 
   clock::get().update();
 }
@@ -245,6 +254,9 @@ static void dispatch_event_handler([[maybe_unused]] void *handler_args,
   case DISPATCH_EVENT_TIME_CHANGED:
     ntp_changed_time(static_cast<struct timeval *>(event_data));
     break;
+  case DISPATCH_EVENT_RTC_TIME_LOADED:
+    rtc_loaded_time(static_cast<struct timeval *>(event_data));
+    break;
   }
 }
 
@@ -265,6 +277,8 @@ extern "C" void app_main() {
   leds_init();
   leds_off();
   lcds_init();
+  bool got_time = rtc_init();
+
   wifi_init(on_wifi_connected);
   gui_init();
 
@@ -284,6 +298,14 @@ extern "C" void app_main() {
   } else {
     // usability affordance if someone doesn't follow directions
     wifi_read_credentials_and_connect(SPIFFS_MOUNTPOINT "wifi.sample.txt");
+  }
+
+  if (got_time) {
+    struct timeval tv {};
+    gettimeofday(&tv, nullptr);
+
+    ESP_ERROR_CHECK(esp_event_post(DISPATCH_EVENTS, DISPATCH_EVENT_RTC_TIME_LOADED,
+                                   &tv, sizeof(struct timeval), portMAX_DELAY));
   }
 }
 
