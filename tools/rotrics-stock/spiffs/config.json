@@ -1,0 +1,47 @@
+{
+	"rtc_type": "pcf",
+	"apps": [
+		{
+			"name": "app1",
+			"app": "Clock",
+			"theme": "NixieOY",
+			"type": "24H",
+			"info_du": 1,
+			"info_lst": [
+				"Weather",
+				"Week",
+				"Temp"
+			]
+		}
+	],
+	"default_app_name": "app1",
+	"album_switch_time": 6000,
+	"album_switch_step": 6,
+	"video_site": "youtube",
+	"youtube_id": "",
+	"youtube_key": "AIzaSyBeu_8oY1xcgPHVHj1CB2vjFlDdPi4kqcg",
+	"bili_uid": "1",
+	"default_countdown_time": 1,
+	"alarm_time": [],
+	"spectrum_RGB": [
+		50,
+		80,
+		100
+	],
+	"ssid": "",
+	"password": "",
+	"weather_api_key": "ddc308a7a1846b3d28b0040ced183467",
+	"time_zone": 7200,
+	"City": "Kloten,CH",
+	"temperature_formate": "Celsius",
+	"music_file": "/audio/Unwritten.mp3",
+	"bell_file": "/audio/bell.wav",
+	"tone_file": "/audio/tremolo3.wav",
+	"timer_file": "/audio/timer.wav",
+	"volume": 50,
+	"lcd_brightness": 50,
+	"led_brightness": 50,
+	"backlight_onoff": "ON",
+	"backlight_mode": "Solid",
+	"backlight_RGB": []
+}
